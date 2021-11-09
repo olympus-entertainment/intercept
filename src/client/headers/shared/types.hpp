@@ -1456,9 +1456,6 @@ namespace intercept {
                 return _scriptNulars;
             }
 
-
-
-
         private:
             types::auto_array<const types::script_type_info*> _scriptTypes;
 
