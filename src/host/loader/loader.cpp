@@ -546,7 +546,9 @@ namespace intercept {
         }
 
         //GameData pool allocators
+        std::cerr << "intercept::host::loader: _scriptTypes:" << std::endl;
         for (auto& entry : game_state_ptr->_scriptTypes) {
+            std::cerr << '\t' << entry->_name << std::endl;
             if (!entry->_createFunction) continue; //Some types don't have create functions. Example: VECTOR.
         #if _WIN64 || __X86_64__
             auto baseOffset = 0x7;
