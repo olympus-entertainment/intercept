@@ -26,6 +26,7 @@
 #include "units.hpp"
 #include "vehicles.hpp"
 #include "waypoint.hpp"
+#include "hashmap.hpp"
 
 #include "uncategorized.hpp"
 #include <regex>

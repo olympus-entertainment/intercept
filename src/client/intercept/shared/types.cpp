@@ -77,6 +77,9 @@ namespace intercept {
         uintptr_t game_data_array::data_type_def;
         rv_pool_allocator* game_data_array::pool_alloc_base;
 
+	uintptr_t game_data_hashmap::type_def;
+	uintptr_t game_data_hashmap::data_type_def;
+
         uintptr_t game_data_bool::type_def;
         uintptr_t game_data_bool::data_type_def;
         rv_pool_allocator* game_data_bool::pool_alloc_base;
@@ -430,6 +433,7 @@ namespace intercept {
             if (name == "TASK"sv) return types::game_data_type::TASK;
             if (name == "DIARY_RECORD"sv) return types::game_data_type::DIARY_RECORD;
             if (name == "LOCATION"sv) return types::game_data_type::LOCATION;
+            if (name == "HASHMAP"sv || name == "HASH_MAP"sv) return types::game_data_type::HASHMAP;
             auto found = additionalTypes.find(static_cast<std::string>(name));
             if (found != additionalTypes.end())
                 return found->second;
@@ -723,6 +727,8 @@ namespace intercept {
                 return game_data_type::BOOL;
             if (_type == game_data_group::type_def)
                 return game_data_type::GROUP;
+            if (_type == game_data_hashmap::type_def)
+                return game_data_type::HASHMAP;
             if (_type == game_data_config::type_def)
                 return game_data_type::CONFIG;
             if (_type == game_data_control::type_def)
