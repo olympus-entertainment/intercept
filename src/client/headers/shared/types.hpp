@@ -926,6 +926,12 @@ namespace intercept {
             static void operator delete(void* ptr_, std::size_t sz_);
         };
 
+	class game_data_hashmap : public game_data {
+	public:
+		static uintptr_t type_def;
+		static uintptr_t data_type_def;
+	};
+
         class game_data_string : public game_data {
         public:
             static uintptr_t type_def;

@@ -401,6 +401,12 @@ namespace intercept {
         invoker::get().type_structures["TEAM_MEMBER"sv] = structure;
         game_data_team_member::type_def = structure.first;
         game_data_team_member::data_type_def = structure.second;
+	ref<game_data> gd_hm(regInfo._types[static_cast<size_t>(GameDataType::HASHMAP)]->_createFunction(nullptr));
+	structure = { gd_hm->get_vtable(), gd_hm->get_secondary_vtable() };
+	invoker::get().type_map[structure.first] = "HASHMAP"sv;
+	invoker::get().type_structures["HASHMAP"sv] = structure;
+	game_data_hashmap::type_def = structure.first;
+	game_data_hashmap::data_type_def = structure.second;
 
 
         ref<game_data> gd_nt(regInfo._types[static_cast<size_t>(GameDataType::NOTHING)]->_createFunction(nullptr));

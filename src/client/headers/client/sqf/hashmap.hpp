@@ -13,8 +13,8 @@ namespace intercept {
             inline const game_value& value() const { return _value; }
             inline bool is_split() const { return _split; }
             size_t count() const;
-            std::optional<std::pair<r_string, const game_value&>> get(const size_t idx) const;
-            inline std::pair<r_string, const game_value&> operator[](const size_t idx) const {
+            std::optional<std::pair<r_string, game_value&>> get(const size_t idx) const;
+            inline std::pair<r_string, game_value&> operator[](const size_t idx) const {
                 return std::move(get(idx).value());
             }
         private:

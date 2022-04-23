@@ -77,6 +77,9 @@ namespace intercept {
         uintptr_t game_data_array::data_type_def;
         rv_pool_allocator* game_data_array::pool_alloc_base;
 
+	uintptr_t game_data_hashmap::type_def;
+	uintptr_t game_data_hashmap::data_type_def;
+
         uintptr_t game_data_bool::type_def;
         uintptr_t game_data_bool::data_type_def;
         rv_pool_allocator* game_data_bool::pool_alloc_base;
@@ -724,6 +727,8 @@ namespace intercept {
                 return game_data_type::BOOL;
             if (_type == game_data_group::type_def)
                 return game_data_type::GROUP;
+            if (_type == game_data_hashmap::type_def)
+                return game_data_type::HASHMAP;
             if (_type == game_data_config::type_def)
                 return game_data_type::CONFIG;
             if (_type == game_data_control::type_def)
