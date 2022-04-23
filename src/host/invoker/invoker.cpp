@@ -294,6 +294,11 @@ namespace intercept {
 
         auto regInfo = loader::get().get_register_sqf_info();
 
+	std::cerr << "intercept::host::loader: " << "regInfo:" << std::endl;
+	for (auto t = regInfo._types.begin(); t != regInfo._types.end(); t++) {
+		std::cerr << '\t' << static_cast<std::string_view>((*t)->_name) << std::endl;
+	}
+
         LOG(INFO, "Registration Hook Function Called: {}", invoker::get()._registration_type);
         auto step = invoker::get()._registration_type;
         invoker::get()._sqf_game_state = regInfo._gameState;
@@ -418,7 +423,6 @@ namespace intercept {
         invoker::get().type_structures["TEAM_MEMBER"sv] = structure;
         game_data_team_member::type_def = structure.first;
         game_data_team_member::data_type_def = structure.second;
-
 
         ref<game_data> gd_nt(regInfo._types[static_cast<size_t>(GameDataType::NOTHING)]->_createFunction(nullptr));
         structure = { gd_nt->get_vtable(), gd_nt->get_secondary_vtable() };
