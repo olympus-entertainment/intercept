@@ -294,6 +294,11 @@ namespace intercept {
 
         auto regInfo = loader::get().get_register_sqf_info();
 
+	std::cerr << "intercept::host::loader: " << "regInfo:" << std::endl;
+	for (auto t = regInfo._types.begin(); t != regInfo._types.end(); t++) {
+		std::cerr << '\t' << static_cast<std::string_view>((*t)->_name) << std::endl;
+	}
+
         LOG(INFO, "Registration Hook Function Called: {}", invoker::get()._registration_type);
         auto step = invoker::get()._registration_type;
         invoker::get()._sqf_game_state = regInfo._gameState;

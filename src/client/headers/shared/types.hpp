@@ -72,6 +72,7 @@ namespace intercept {
             TASK,
             DIARY_RECORD,
             LOCATION,
+	    HASHMAP,
             end
         };
 

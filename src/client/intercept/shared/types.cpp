@@ -430,6 +430,7 @@ namespace intercept {
             if (name == "TASK"sv) return types::game_data_type::TASK;
             if (name == "DIARY_RECORD"sv) return types::game_data_type::DIARY_RECORD;
             if (name == "LOCATION"sv) return types::game_data_type::LOCATION;
+            if (name == "HASHMAP"sv || name == "HASH_MAP"sv) return types::game_data_type::HASHMAP;
             auto found = additionalTypes.find(static_cast<std::string>(name));
             if (found != additionalTypes.end())
                 return found->second;
