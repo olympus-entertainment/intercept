@@ -425,20 +425,53 @@ namespace intercept {
             nular_operator* op;
         };
 
-        struct sourcedoc : public serialize_class {  //See ArmaDebugEngine for more info on this
+        class sourcedoc : public serialize_class {
+        public:
+            constexpr sourcedoc() noexcept:
+                sourcefile(),
+                content()
+            {
+            }
             r_string sourcefile;
             r_string content;
+
+            inline bool has_sourcefile() const noexcept {
+                return !sourcefile.empty();
+            }
+
+            inline bool has_content() const noexcept {
+                return !content.empty();
+            }
 
             serialization_return serialize(param_archive& ar) override {
                 return serialization_return::unknown_error;
             }
         };
 
-        struct sourcedocpos : public serialize_class {  //See ArmaDebugEngine for more info on this
+        class sourcedocpos : public serialize_class {
+        public:
+
+#ifndef __linux__
+            constexpr sourcedocpos() noexcept : sourceline(0), pos(0) {}
             r_string sourcefile;
             uint32_t sourceline;
             r_string content;
             uint32_t pos;
+
+            inline bool has_sourcefile() const {
+                return !sourcefile.empty();
+            }
+
+            inline bool has_content() const {
+                return !content.empty();
+            }
+
+            inline std::pair<uint32_t, uint32_t> position() const {
+                return { sourceline, pos };
+            }
+#else
+            constexpr sourcedocpos() noexcept {}
+#endif
 
             serialization_return serialize(param_archive& ar) override {
                 return serialization_return::unknown_error;
