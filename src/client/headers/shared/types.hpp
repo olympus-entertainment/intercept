@@ -880,7 +880,7 @@ namespace intercept {
             }
 
             const sourcedocpos& get_current_position() {
-                return sdocpos;
+                return *sdocpos;
             }
 
 
@@ -894,7 +894,7 @@ namespace intercept {
 
             sourcedoc sdoc;
 
-            sourcedocpos sdocpos;  //last instruction pos
+            ref<sourcedocposref> sdocpos;  //last instruction pos
 
             r_string name;  //profiler might like this
 
@@ -1477,7 +1477,7 @@ namespace intercept {
                 eval->_errorType = type;
                 eval->_errorMessage = message;
                 if (current_context)
-                    eval->_errorPosition = current_context->sdocpos;
+                    eval->_errorPosition = *current_context->sdocpos;
             }
 
             /**
