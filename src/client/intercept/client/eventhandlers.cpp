@@ -12,11 +12,17 @@ namespace intercept::client {
     /// @private
     uint32_t EHIteration = 0; //How often the EH's have been cleared yet. Used to detect invalid removeEH calls
 
+// if we're on windows, specify some random DLLEXPORT and ABI shit
+#ifdef _WIN32
+#define INTERCEPT_PRIV_EXPORTED(t) extern "C" DLLEXPORT t CDECL
+#else
+#define INTERCEPT_PRIV_EXPORTED(t) extern "C" t CDECL
+#endif
     //Not in header because these are Internal functions that shall not be messed with
     /// @private
-    extern "C" DLLEXPORT void CDECL client_eventhandler(intercept::types::game_value& retVal, uint8_t ehType, int32_t uid, int handle, intercept::types::game_value args);
+    INTERCEPT_PRIV_EXPORTED(void) client_eventhandler(intercept::types::game_value& retVal, uint8_t ehType, int32_t uid, int handle, intercept::types::game_value args);
     /// @private
-    extern "C" DLLEXPORT void CDECL client_eventhandlers_clear();
+    INTERCEPT_PRIV_EXPORTED(void) client_eventhandlers_clear();
     /// @private
     void client_eventhandler(intercept::types::game_value& retVal, uint8_t ehType, int32_t uid, int handle, intercept::types::game_value args) {
 #ifndef INTERCEPT_NO_SQF

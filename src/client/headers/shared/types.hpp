@@ -824,6 +824,7 @@ namespace intercept {
 
         class vm_context : public serialize_class {
         public:
+            vm_context(): scheduled(false) {}
             class IDebugScope {  //ArmaDebugEngine
             public:
                 virtual ~IDebugScope() {}
