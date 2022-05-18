@@ -465,6 +465,7 @@ namespace intercept {
                 case game_data_type::TASK: return "TASK"sv;
                 case game_data_type::DIARY_RECORD: return "DIARY_RECORD"sv;
                 case game_data_type::LOCATION: return "LOCATION"sv;
+                case game_data_type::HASHMAP: return "HASHMAP"sv;
                 default:;
             }
             for (auto& it : additionalTypes) {
@@ -863,6 +864,8 @@ namespace intercept {
                 case game_data_type::TASK: return reinterpret_cast<game_data*>(data.get())->to_string().hash(); //"Task %s (id %d)" or "No Task"
                 case game_data_type::DIARY_RECORD: return reinterpret_cast<game_data*>(data.get())->to_string().hash(); //"No diary record" or... The text of that record? Text might be long and make this hash heavy
                 case game_data_type::LOCATION: return reinterpret_cast<game_data_location*>(data.get())->hash();
+                // TODO: implement for hashmaps
+                case game_data_type::HASHMAP:
                 case game_data_type::end: return 0;
             }
 

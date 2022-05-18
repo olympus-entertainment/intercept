@@ -11,10 +11,12 @@ Provides the ability to assign Eventhandlers without going through SQF
 */
 #pragma once
 
-#if _WIN64 || __X86_64__
+#ifdef _WIN32
+#if defined(_WIN64) || defined(__X86_64__)
 #pragma comment(linker, "/include:client_eventhandlers_clear")
 #else
 #pragma comment(linker, "/include:_client_eventhandlers_clear")
+#endif
 #endif
 
 #include "../shared/client_types.hpp"
