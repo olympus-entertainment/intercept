@@ -450,8 +450,6 @@ namespace intercept {
 
         class sourcedocpos : public serialize_class {
         public:
-
-#ifndef __linux__
             constexpr sourcedocpos() noexcept : sourceline(0), pos(0) {}
             r_string sourcefile;
             uint32_t sourceline;
@@ -469,9 +467,6 @@ namespace intercept {
             inline std::pair<uint32_t, uint32_t> position() const {
                 return { sourceline, pos };
             }
-#else
-            constexpr sourcedocpos() noexcept {}
-#endif
 
             serialization_return serialize(param_archive& ar) override {
                 return serialization_return::unknown_error;
