@@ -16,7 +16,7 @@ namespace intercept::client {
 #ifdef _WIN32
 #define INTERCEPT_PRIV_EXPORTED(t) extern "C" DLLEXPORT t CDECL
 #else
-#define INTERCEPT_PRIV_EXPORTED(t) extern "C" t CDECL
+#define INTERCEPT_PRIV_EXPORTED(t) extern "C" __attribute__ ((visibility ("default"))) t CDECL
 #endif
     //Not in header because these are Internal functions that shall not be messed with
     /// @private
