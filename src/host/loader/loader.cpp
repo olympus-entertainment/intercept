@@ -238,31 +238,49 @@ namespace intercept {
 
 
         //Start them async before doing the other stuff so they are done when we are done parsing the script functions
-    #ifdef __linux__
+#ifdef __linux__
+#define ALLOCATOR_STRING_SEARCH "12MemFunction"
+#else
+#define ALLOCATOR_STRING_SEARCH "tbb4malloc_bi"
+#endif
         auto future_stringOffset = std::async([&]() {
-            auto offs = findInMemory("12MemFunction", 13);
-            //std::cout << "future_stringOffset" << std::hex << offs << "\n";
+            auto offs = findInMemory(ALLOCATOR_STRING_SEARCH, 13);
+#ifdef LOADER_DEBUG
+            std::cout << "future_stringOffset: 0x" << std::hex << offs << std::endl;
+#endif
             return offs;
         });
-    #else
-        auto future_stringOffset = std::async([&]() {return findInMemory("tbb4malloc_bi", 13); });
-    #endif
 
         //Second part of finding the allocator. Done here so the second memorySearch is done when we are done parsing the Nulars
 
         auto future_allocatorVtablePtr = std::async(std::launch::deferred, [&]() {
             uintptr_t stringOffset = future_stringOffset.get();
-        #ifndef __linux__
-            return (findInMemory(reinterpret_cast<char*>(&stringOffset), sizeof(uintptr_t)) - sizeof(uintptr_t));
-        #elif _LINUX64
-          uintptr_t vtableStart = stringOffset + 0x20;
-          return vtableStart;
-        #else
-            uintptr_t vtableStart = stringOffset - (0x09D20C70 - 0x09D20BE8);
-            return vtableStart;
-            //return (findInMemory(reinterpret_cast<char*>(&vtableStart), 4));
-        #endif
-
+            #ifndef __linux__
+                return (findInMemory(reinterpret_cast<char*>(&stringOffset), sizeof(uintptr_t)) - sizeof(uintptr_t));
+            #elif _LINUX64
+                bool oldCompiler = *reinterpret_cast<uintptr_t*>(stringOffset - 8) == stringOffset;
+                if (oldCompiler) {
+                    uintptr_t vtableStart = stringOffset + 0x20;
+                    return vtableStart;
+                }
+                uintptr_t ref = findInMemory(reinterpret_cast<char*>(&stringOffset), sizeof(uintptr_t));
+                if (!ref) {
+                    return (uintptr_t)nullptr;
+                }
+                ref += 8;
+                ref = findInMemory(reinterpret_cast<char*>(&ref), sizeof(uintptr_t));
+                if (!ref) {
+                    return (uintptr_t)nullptr;
+                }
+                return (uintptr_t)(ref - 0x100);
+            #else
+                static_assert(false, "32bit linux Not supported anymore intentional compile fail");
+                //uintptr_t vtableStart = stringOffset - (0x09D20C70 - 0x09D20BE8);
+                //return vtableStart;
+                //return (findInMemory(reinterpret_cast<char*>(&vtableStart), 4));
+                return 0;
+                //return (findInMemory(reinterpret_cast<char*>(&vtableStart), 4));
+            #endif
         });
 
 
