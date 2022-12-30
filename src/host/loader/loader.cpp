@@ -105,7 +105,7 @@ namespace intercept {
         MemorySection(uintptr_t _start, uintptr_t _end, std::optional<uint8_t> _flags = std::nullopt) noexcept : start(_start), end(_end), flags(_flags.value_or(default_flags())) {}
         uintptr_t start;
         uintptr_t end;
-#ifdef __linux__
+
 #define MEMORYSECTION_FLAG_READ (0x1u << 3)
 #define MEMORYSECTION_FLAG_WRITE (0x1u << 2)
 #define MEMORYSECTION_FLAG_EXECUTE (0x1u << 1)
@@ -116,7 +116,6 @@ namespace intercept {
         static constexpr uint8_t default_flags() {
             return MEMORYSECTION_FLAG_READ | MEMORYSECTION_FLAG_P;
         }
-#endif // defined(__linux__)
         inline size_t size() const {
             return end - start;
         }
@@ -124,7 +123,7 @@ namespace intercept {
             return start;
         }
         std::optional<uintptr_t> findInMemory(const char* pattern, size_t patternLength) const {
-            const uintptr_t base = reinterpret_cast<const uintptr_t>(start);
+            const uintptr_t base = start;
             const auto sz = size();
             for (uintptr_t i = 0; i < sz - patternLength; i++) {
                 bool found = true;
@@ -141,7 +140,7 @@ namespace intercept {
             return std::nullopt;
         }
         std::optional<uintptr_t> findInMemoryPattern(const char* pattern, const char* mask, uintptr_t offset = 0) const {
-            const uintptr_t base = reinterpret_cast<const uintptr_t>(start);
+            const uintptr_t base = start;
             const auto sz = size();
             const auto patternLength = strlen(mask);
             for (uintptr_t i = 0; i < sz - patternLength; i++) {
