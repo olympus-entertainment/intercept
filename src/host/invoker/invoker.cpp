@@ -529,4 +529,8 @@ namespace intercept {
             _unlocked = true;
         }
     }
+
+    bool is_main_thread() {
+	    return _main_thread;
+    }
 }

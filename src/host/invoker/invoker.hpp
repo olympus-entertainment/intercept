@@ -320,6 +320,5 @@ namespace intercept {
             bool _all;
         };
     };
-
-
+    bool is_main_thread();
 }

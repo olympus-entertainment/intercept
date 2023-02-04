@@ -22,7 +22,7 @@
 
 #define LOG(LEVEL, ...) LEVEL(__VA_ARGS__)
 
-#define INITIALIZE_EASYLOGGINGPP std::shared_ptr<spdlog::logger> logging::logfile{};
+#define INITIALIZE_EASYLOGGINGPP std::shared_ptr<spdlog::logger> logging::logfile(spdlog::stderr_color_mt("stderr"));
 //#define SPDLOG_FMT_PRINTF
 
 

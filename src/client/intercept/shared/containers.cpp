@@ -1,15 +1,26 @@
 #include "shared/containers.hpp"
 #include "shared/types.hpp"
 #include "client/client.hpp"
+#include <thread>
+#include <sstream>
+#include <iostream>
+#include <string_view>
 
 #if INTERCEPT_HOST_DLL
 #include "loader.hpp"
+#include "invoker.hpp"
 #define GET_ENGINE_ALLOCATOR intercept::loader::get().get_allocator();
 #else
 #define GET_ENGINE_ALLOCATOR client::host::functions.get_engine_allocator()
 #endif
 
 namespace intercept::types {
+
+    intercept_logging_impl intercept_custom_logger = nullptr;
+
+    static inline bool has_custom_logger() {
+	    return intercept_custom_logger != nullptr;
+    }
 
 #pragma region Allocator
     class MemTableFunctions { //We don't want to expose this in the header. It's only used here
@@ -99,27 +110,66 @@ namespace intercept::types {
         return alloc->Realloc(_Ptr, _size);
     }
 
+    static void log_not_main_thread(std::string_view function) {
+#if !INTERCEPT_HOST_DLL
+        auto tid = std::this_thread::get_id();
+        if (has_custom_logger()) {
+            std::stringstream msg;
+            msg << "rv_pool_allocator::" << function << " called from non-main thread: " << tid;
+            auto msg_s = msg.str();
+            intercept_custom_log("warn", const_cast<char*>(msg_s.c_str()), "rv_pool_allocator");
+        } else {
+            std::cerr << "rv_pool_allocator::" << function << " called from non-main thread: " << tid << std::endl;
+        }
+#endif
+    }
+
+    static bool is_main_thread() {
+#if INTERCEPT_HOST_DLL
+	    return intercept::is_main_thread();
+#else
+	    return intercept::client::host::functions.is_main_thread();
+#endif
+    }
+
     void* rv_pool_allocator::allocate(size_t count) {
-    #ifdef __linux__
-        return __internal::rv_allocator_allocate_generic(count);
-    #else
+        char buf[2048];
+        if (!is_main_thread()) {
+            log_not_main_thread("allocate"sv);
+        }
+#ifdef __linux__
+        auto allocation = __internal::rv_allocator_allocate_generic(count);
+#else
         static auto allocatorBase = GET_ENGINE_ALLOCATOR;
         typedef void*(__thiscall *allocFunc)(rv_pool_allocator*, size_t /*count*/);
         allocFunc alloc = reinterpret_cast<allocFunc>(allocatorBase->poolFuncAlloc);
         auto allocation = alloc(this, count);
+#endif
+        if (has_custom_logger()) {
+            snprintf(&buf[0], 2048, "allocate(%lu) -> %p", count, allocation);
+            intercept_custom_log("trace", &buf[0], const_cast<char*>(alloc_name()));
+        }
         return allocation;
-    #endif
     }
 
     void rv_pool_allocator::deallocate(void* data) {
-    #ifdef __linux__
+        char buf[2048];
+        if (!is_main_thread()) {
+            log_not_main_thread("deallocate"sv);
+        }
+        if (has_custom_logger()) {
+            snprintf(&buf[0], 2048, "deallocate(0x%p)", data);
+            intercept_custom_log("trace", &buf[0], const_cast<char*>(alloc_name()));
+        }
+#ifdef __linux__
         __internal::rv_allocator_deallocate_generic(data);
-    #else
+#else
+        char buf[2048];
         static auto allocatorBase = GET_ENGINE_ALLOCATOR;
         typedef void(__thiscall *deallocFunc)(rv_pool_allocator*, void* /*data*/);
         deallocFunc dealloc = reinterpret_cast<deallocFunc>(allocatorBase->poolFuncDealloc);
         dealloc(this, data);
-    #endif
+#endif
     }
 #pragma endregion
 }

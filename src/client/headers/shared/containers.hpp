@@ -12,6 +12,16 @@
 #undef max
 
 namespace intercept::types {
+    extern "C" {
+        typedef void(*intercept_logging_impl)(char*, char*, char*);
+        extern intercept_logging_impl intercept_custom_logger;
+    };
+
+    inline void intercept_custom_log(char* level, char* message, char* target) {
+        if (!intercept_custom_logger)
+            return;
+        intercept_custom_logger(level, message, target);
+    }
 
 #pragma region Allocator
 
@@ -141,6 +151,13 @@ namespace intercept::types {
 
         void* allocate(size_t count);
         void deallocate(void* data);
+        inline const char* alloc_name() const {
+#ifdef __linux__
+            return "LinuxUnknown";
+#else
+            return _allocName;
+#endif
+        }
     };
     template <class Type, int Count, class Fallback = rv_allocator<Type>>
     class rv_allocator_local : private Fallback {

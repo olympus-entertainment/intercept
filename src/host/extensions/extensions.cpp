@@ -43,6 +43,7 @@ namespace intercept {
             return extensions::get().request_plugin_interface(module_name_, name_, api_version_).value_or(nullptr);
         };
         functions.get_pbo_files_list = client_function_defs::get_pbo_files_list;
+	functions.is_main_thread = client_function_defs::is_main_thread;
 
         std::string arg_line = search::plugin_searcher::get_command_line();
         std::transform(arg_line.begin(), arg_line.end(), arg_line.begin(), ::tolower);

@@ -105,6 +105,7 @@ namespace intercept {
 
             //#TODO docs
             const auto_array<r_string> * (*get_pbo_files_list)();
+	    bool (*is_main_thread)();
         private:
             /*!
             @brief Registers SQF Function
