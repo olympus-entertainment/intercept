@@ -477,48 +477,20 @@ namespace intercept {
             nular_operator* op;
         };
 
-        class sourcedoc : public serialize_class {
-        public:
-            constexpr sourcedoc() noexcept:
-                sourcefile(),
-                content()
-            {
-            }
+        struct sourcedoc : public serialize_class {  //See ArmaDebugEngine for more info on this
             r_string sourcefile;
             r_string content;
-
-            inline bool has_sourcefile() const noexcept {
-                return !sourcefile.empty();
-            }
-
-            inline bool has_content() const noexcept {
-                return !content.empty();
-            }
 
             serialization_return serialize(param_archive& ar) override {
                 return serialization_return::unknown_error;
             }
         };
 
-        class sourcedocpos : public serialize_class {
-        public:
-            constexpr sourcedocpos() noexcept : sourceline(0), pos(0) {}
+        struct sourcedocpos : public serialize_class {  //See ArmaDebugEngine for more info on this
             r_string sourcefile;
             uint32_t sourceline;
             r_string content;
             uint32_t pos;
-
-            inline bool has_sourcefile() const {
-                return !sourcefile.empty();
-            }
-
-            inline bool has_content() const {
-                return !content.empty();
-            }
-
-            inline std::pair<uint32_t, uint32_t> position() const {
-                return { sourceline, pos };
-            }
 
             serialization_return serialize(param_archive& ar) override {
                 return serialization_return::unknown_error;
@@ -721,7 +693,7 @@ namespace intercept {
 
             /**
             * @brief tries to convert the game_value to an array if possible and return the element at given index.
-            * @description If value is not an array and index==0 it returns the value. 
+            * @description If value is not an array and index==0 it returns the value.
             * If the index is out of bounds it returns empty optional.
             */
             std::optional<game_value> get(size_t i_) const;
@@ -871,7 +843,6 @@ namespace intercept {
 
         class vm_context : public serialize_class {
         public:
-            vm_context(): scheduled(false) {}
             class IDebugScope {  //ArmaDebugEngine
             public:
                 virtual ~IDebugScope() {}
@@ -1026,7 +997,7 @@ namespace intercept {
         public:
             static uintptr_t type_def;
             static uintptr_t data_type_def;
-            static rv_pool_allocator* pool_alloc_base;    
+            static rv_pool_allocator* pool_alloc_base;
 
             game_data_hashmap();
             game_data_hashmap(const game_data_hashmap& copy_);
@@ -1037,7 +1008,7 @@ namespace intercept {
 
             static void* operator new(std::size_t sz_);
             static void operator delete(void* ptr_, std::size_t sz_);
-        
+
             rv_hashmap data;
         };
 
@@ -1390,7 +1361,7 @@ namespace intercept {
         public:
 
 
-            
+
             class game_evaluator : public refcount {  //refcounted
             public:
                 game_evaluator(game_var_space* var = nullptr) {
@@ -1513,7 +1484,7 @@ namespace intercept {
                 if (!eval || !eval->local) return;
                 eval->local->delete_variable(name);
             }
-            
+
             /**
             * @brief Sets a script error at current position.
             * @param type This type is actually irrelevant, it just needs to be !=ok and !=handled though it's still recommended to use a sensible type
@@ -1579,6 +1550,9 @@ namespace intercept {
             const auto& get_script_nulars() {
                 return _scriptNulars;
             }
+
+
+
 
         private:
             types::auto_array<const types::script_type_info*> _scriptTypes;
