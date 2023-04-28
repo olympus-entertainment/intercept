@@ -379,6 +379,9 @@ namespace intercept {
             }
             const script_type_info* single_type{nullptr};
             compound_script_type_info* compound_type{nullptr};
+#ifdef INTERCEPT_NEW_SCRIPT_TYPE
+            size_t metadata = 0;
+#endif
             value_types type() const;
             r_string type_str() const;
             bool operator==(const sqf_script_type& other) const noexcept {
@@ -395,8 +398,10 @@ namespace intercept {
 
         private:
             sqf_script_type arg_type;
+#ifndef INTERCEPT_NEW_SCRIPT_TYPE
             uint64_t dummySpace{0};
             uint64_t dummySpace2{0};
+#endif
 
         public:
             unary_operator() {
@@ -405,12 +410,14 @@ namespace intercept {
             }
 
             sqf_script_type& get_arg_type(bool creation = false) {
+#ifndef INTERCEPT_NEW_SCRIPT_TYPE
                 static bool newVersionFlags = false;  // The check only works during load, not write, need member, VS please no crash again so I don't have to write this comment for the 7th time
                 // Arma 2.13 150487
                 if (newVersionFlags || (!creation && !arg_type.get_vtable())) { // During construction it may validly be null, even though we aren't in new build
                     newVersionFlags = true;
                     return *reinterpret_cast<sqf_script_type*>(reinterpret_cast<uintptr_t>(&arg_type) + sizeof(uintptr_t));
                 }
+#endif
                 return arg_type;
             }
         };
@@ -428,9 +435,11 @@ namespace intercept {
         private:
             sqf_script_type arg1_type;
             sqf_script_type arg2_type;
+#ifndef INTERCEPT_NEW_SCRIPT_TYPE
             uint64_t dummySpace{0};  // Make sure allocator allocates enough space
             uint64_t dummySpace2{0};
             uint64_t dummySpace3{0};
+#endif
 
         public:
             binary_operator() {
@@ -440,22 +449,26 @@ namespace intercept {
                 get_arg2_type(true).set_vtable(sqf_script_type::type_def);
             }
             sqf_script_type& get_arg1_type(bool creation = false) {
+#ifndef INTERCEPT_NEW_SCRIPT_TYPE
                 static bool newVersionFlags = false;
                 // Arma 2.13 150487
                 if (newVersionFlags || (!creation && !arg1_type.get_vtable())) {
                     newVersionFlags = true;
                     return *reinterpret_cast<sqf_script_type*>(reinterpret_cast<uintptr_t>(&arg1_type) + sizeof(uintptr_t));
                 }
+#endif
                 return arg1_type;
             }
 
             sqf_script_type& get_arg2_type(bool creation = false) {
+#ifndef INTERCEPT_NEW_SCRIPT_TYPE
                 static bool newVersionFlags = false;
                 // Arma 2.13 150487
                 if (newVersionFlags || (!creation && !arg1_type.get_vtable())) {
                     newVersionFlags = true;
                     return *reinterpret_cast<sqf_script_type*>(reinterpret_cast<uintptr_t>(&arg2_type) + sizeof(uintptr_t) * 2);
                 }
+#endif
                 return arg2_type;
             }
         };
@@ -469,6 +482,9 @@ namespace intercept {
         struct nular_operator : _refcount_vtable_dummy {
             nular_function* procedure_addr;
             sqf_script_type return_type;
+#ifndef INTERCEPT_NEW_SCRIPT_TYPE
+            uint64_t dummySpace;
+#endif
         };
 
         struct nular_entry {

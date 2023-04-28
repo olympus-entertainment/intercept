@@ -12,6 +12,7 @@ endif()
 
 option(USE_64BIT_BUILD "USE_64BIT_BUILD" OFF)
 option(USE_STATIC_LINKING "USE_STATIC_LINKING" ON)
+option(USE_NEW_SCRIPT_TYPE "USE_NEW_SCRIPT_TYPE" OFF)
 
 if(USE_STATIC_LINKING)
     message("WARNING: Linking statically")
@@ -26,6 +27,10 @@ if("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC" AND "${CMAKE_SIZEOF_VOID_P}" STREQU
     set( USE_64BIT_BUILD ON)
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
     set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /std:c++latest" )
+endif()
+
+if (USE_NEW_SCRIPT_TYPE)
+    add_compile_definitions(INTERCEPT_NEW_SCRIPT_TYPE)
 endif()
 
 message("GENERATOR USED: '${CMAKE_GENERATOR}'")

@@ -472,11 +472,15 @@ std::pair<types::game_data_type, sqf_script_type*>  intercept::sqf_functions::re
     LOG(INFO, "sqf_functions::register_sqf_type {} {} {} ", name, localizedName, description, typeName);
     types::__internal::add_game_datatype(name, static_cast<types::game_data_type>(newIndex));
 
+#ifdef INTERCEPT_NEW_SCRIPT_TYPE
+    auto typeInstance = rv_allocator<sqf_script_type>::create_single(_registerFuncs._type_vtable, newType, nullptr);
+#else
     auto typeInstance = //rv_allocator<sqf_script_type>::create_single(_registerFuncs._type_vtable, newType, nullptr);
         // Temporary workaround for change in 2.13 150487
         rv_allocator<sqf_script_type>::allocate(2);
     memset(typeInstance, 0, sizeof(sqf_script_type) * 2);
     ::new (typeInstance) sqf_script_type(_registerFuncs._type_vtable, newType, nullptr);
+#endif
 
     return {static_cast<types::game_data_type>(newIndex), {typeInstance}};
 }
@@ -502,6 +506,9 @@ sqf_script_type* sqf_functions::register_compound_sqf_type(const auto_array<type
 
     LOG(INFO, "sqf_functions::register_compound_sqf_type");
 
+#ifdef INTERCEPT_NEW_SCRIPT_TYPE
+    return rv_allocator<sqf_script_type>::create_single(_registerFuncs._type_vtable, nullptr, newType);
+#else
     auto typeInstance =  //rv_allocator<sqf_script_type>::create_single(_registerFuncs._type_vtable, nullptr, newType);
         // Temporary workaround for change in 2.13 150487
         rv_allocator<sqf_script_type>::allocate(2);
@@ -509,6 +516,7 @@ sqf_script_type* sqf_functions::register_compound_sqf_type(const auto_array<type
     ::new (typeInstance) sqf_script_type(_registerFuncs._type_vtable, nullptr, newType);
 
     return typeInstance;
+#endif
 }
 
 intercept::__internal::gsNular* intercept::sqf_functions::findNular(std::string name) const {
