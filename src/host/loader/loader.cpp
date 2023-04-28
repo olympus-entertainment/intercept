@@ -7,6 +7,8 @@
 #include <cstring>
 #include <optional>
 #include <regex>
+#include <array>
+#include <algorithm>
 #ifdef __linux__
 #include <dlfcn.h>
 #include <link.h>
@@ -313,6 +315,53 @@ namespace intercept {
         return b ? "true" : "false";
     }
 
+    static inline void log_param(const std::string_view name, const sqf_script_type& t) {
+        LOG(INFO, "\t{}: {} ({:x})", name, t.type_str(), t.metadata);
+    }
+
+    // template<size_t N = 64>
+    // class argnames {
+    // public:
+    //     argnames() : index(0) {
+    //         const std::string_view first = "arg_0";
+    //         auto it = std::copy(first.cbegin(), first.cend(), buf.begin());
+    //         *it = '\0';
+    //     }
+    //     argnames(size_t idx) : index(idx) {
+    //         generate();
+    //     }
+    //     argnames& operator++() & {
+    //         generate(++index);
+    //         return *this;
+    //     }
+    //     inline bool operator==(const argnames& other) const& {
+    //         return index == other.index;
+    //     }
+    //     inline operator std::string_view () const& {
+    //         return buf.data();
+    //     }
+    //     inline std::string_view operator*() const& {
+    //         return static_cast<std::string_view>(*this);
+    //     }
+    // private:
+    //     size_t index;
+    //     std::array<char, N> buf;
+    //     inline void generate() & {
+    //         generate(index);
+    //     }
+    //     inline void generate(size_t idx) & {
+    //         std::snprintf(buf.data(), buf.size(), "arg_%u", idx);
+    //     }
+    // };
+
+    // template<class InputIt>
+    // static void log_params(InputIt begin, InputIt end) {
+    //     argnames names;
+    //     std::for_each(begin, end, [&](const sqf_script_type& t) {
+    //         log_param(++names, t);
+    //     });
+    // }
+
     void loader::do_function_walk(uintptr_t state_addr_) {
         game_state_ptr = reinterpret_cast<game_state*>(state_addr_);
         DEBUG_PTR(game_state_ptr);
@@ -549,7 +598,7 @@ static const char* ALLOCATOR_STRING_SEARCH = "tbb4malloc_bi";
         _allocator.genericAllocBase = allocatorVtablePtr;
 
 
-
+        const auto log_return = [](const sqf_script_type& t) { log_param("return"sv, t); };
         /*
         Unary Hashmap
 
@@ -566,6 +615,8 @@ static const char* ALLOCATOR_STRING_SEARCH = "tbb4malloc_bi";
                 LOG(INFO, "Found unary operator: {} {} ({}) @{:x}",
                     new_entry.op->return_type.type_str(), new_entry.name,
                     new_entry.op->get_arg_type().type_str(), reinterpret_cast<uintptr_t>(new_entry.op->procedure_addr));
+                log_return(new_entry.op->return_type);
+                log_param("arg", new_entry.op->get_arg_type());
                 _unary_operators[entry._name2].push_back(new_entry);
             }
         }
@@ -579,9 +630,14 @@ static const char* ALLOCATOR_STRING_SEARCH = "tbb4malloc_bi";
                 new_entry.op = entry._operator;
                 new_entry.procedure_ptr_addr = reinterpret_cast<uintptr_t>(&entry._operator->procedure_addr);
                 new_entry.name = entry._name.data();
+
                 LOG(INFO, "Found binary operator: {} ({}) {} ({}) @{:x}",
                     new_entry.op->return_type.type_str(), new_entry.op->get_arg1_type().type_str(), new_entry.name,
                     new_entry.op->get_arg2_type().type_str(), reinterpret_cast<uintptr_t>(new_entry.op->procedure_addr));
+                log_return(new_entry.op->return_type);
+                log_param("left", new_entry.op->get_arg1_type());
+                log_param("right", new_entry.op->get_arg2_type());
+
                 _binary_operators[entry._name2].push_back(new_entry);
             }
         }
@@ -595,6 +651,7 @@ static const char* ALLOCATOR_STRING_SEARCH = "tbb4malloc_bi";
             new_entry.procedure_ptr_addr = reinterpret_cast<uintptr_t>(&entry._operator->procedure_addr);
             new_entry.name = entry._name.data();
             LOG(INFO, "Found nular operator: {} {} @{:x}", new_entry.op->return_type.type_str(), new_entry.name, reinterpret_cast<uintptr_t>(new_entry.op->procedure_addr));
+            log_return(new_entry.op->return_type);
             _nular_operators[entry._name2].push_back(new_entry);
         }
 
@@ -659,9 +716,9 @@ static const char* ALLOCATOR_STRING_SEARCH = "tbb4malloc_bi";
         if (evaluate_script_function) {
             _allocator.evaluate_func = [](const game_data_code& code, void* ns, const r_string& name) -> game_value {
                 typedef game_value*(__thiscall *evaluate_func) (game_state* gs, game_value& ret, const r_string& code, void* instruction_list, void* context, void* ns, const r_string& name);
-                
+
                 evaluate_func func = reinterpret_cast<evaluate_func>(loader::get().evaluate_script_function);
-                
+
 
                 struct contextType {
                     bool _local;

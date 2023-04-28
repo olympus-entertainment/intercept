@@ -233,10 +233,13 @@ namespace intercept {
         class gsFuncBase {
         public:
             r_string _name;
-            void copyPH(const gsFuncBase* other) noexcept {
-                securityStuff = other->securityStuff;
-                //std::copy(std::begin(other->securityStuff), std::end(other->securityStuff), std::begin(securityStuff));
+            void copyPH(const gsFuncBase& other) & noexcept {
+                securityStuff = other.securityStuff;
             }
+            // void copyPH(const gsFuncBase* other) noexcept {
+            //     securityStuff = other->securityStuff;
+            //     //std::copy(std::begin(other->securityStuff), std::end(other->securityStuff), std::begin(securityStuff));
+            // }
         private:
             std::array<size_t,
             #if _WIN64 || __X86_64__

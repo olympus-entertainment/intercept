@@ -484,7 +484,7 @@ namespace intercept {
             if (name == "LOCATION"sv) return types::game_data_type::LOCATION;
             if (name == "HASHMAP"sv || name == "HASH_MAP"sv) return types::game_data_type::HASHMAP;
             auto found = additionalTypes.find(static_cast<std::string>(name));
-            if (found != additionalTypes.end())
+            if (found != additionalTypes.cend())
                 return found->second;
             return types::game_data_type::end;
         }
@@ -658,7 +658,7 @@ namespace intercept {
             #endif
                 return static_cast<int>(data->get_as_number());
             }
-                
+
             return 0;
         }
 
@@ -709,7 +709,7 @@ namespace intercept {
                     return static_cast<std::string>(data->get_as_string());
                 return static_cast<std::string>(data->to_string());
             }
-                
+
             return {};
         }
 
@@ -856,7 +856,7 @@ namespace intercept {
                 case game_data_type::TEAM_MEMBER: //[[fallthrough]] //SLP
                 case game_data_type::TASK:        //[[fallthrough]] //LL
                 case game_data_type::LOCATION://LL
-                { 
+                {
                     const uintptr_t datax = reinterpret_cast<uintptr_t>(data.get());
                     const uintptr_t data_1 = datax + sizeof(uintptr_t) * 3;
                     const uintptr_t data_2 = *reinterpret_cast<uintptr_t *>(data_1);
@@ -874,7 +874,7 @@ namespace intercept {
 
                 default: ;
             }
-            
+
 
             return false; //Dunno that Type. Users fault.
         }
@@ -908,7 +908,7 @@ namespace intercept {
         void game_value::operator delete(void* ptr_, std::size_t) {
             rv_allocator<game_value>::deallocate(static_cast<game_value*>(ptr_));
         }
-       
+
         bool exiting = false;
         /// @private
         extern "C" DLLEXPORT void CDECL handle_unload_internal() {

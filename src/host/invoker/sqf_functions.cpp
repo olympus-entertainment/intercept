@@ -152,7 +152,7 @@ intercept::types::registered_sqf_function intercept::sqf_functions::register_sqf
         }
 
         operators = static_cast<game_operators*>(table->push_back(game_operators(r_string(lowerName))));
-        operators->copyPH(test);
+        operators->copyPH(*test);
     } else {  //Name already exists
 
 
@@ -189,7 +189,7 @@ intercept::types::registered_sqf_function intercept::sqf_functions::register_sqf
 #ifndef __linux__
     op._description = description;
 #endif
-    op.copyPH(test);
+    op.copyPH(*test);
     op._operator = rv_allocator<binary_operator>::create_single();
     op._operator->_vtable = test->_operator->_vtable;
     op._operator->procedure_addr = reinterpret_cast<binary_function*>(function_);
@@ -204,10 +204,10 @@ intercept::types::registered_sqf_function intercept::sqf_functions::register_sqf
 
     //auto inserted = findBinary(name, left_arg_type, right_arg_type);
     //std::stringstream stream;
-    LOG(INFO, "sqf_functions::register_sqf_function binary {} {} = {:x} {} = {:x} {} = {:x} @ {:x}", name,
-        types::__internal::to_string(return_arg_type), reinterpret_cast<uintptr_t>(_registerFuncs._types[static_cast<size_t>(return_arg_type)]),
-        types::__internal::to_string(left_arg_type), reinterpret_cast<uintptr_t>(_registerFuncs._types[static_cast<size_t>(left_arg_type)]),
-        types::__internal::to_string(right_arg_type), reinterpret_cast<uintptr_t>(_registerFuncs._types[static_cast<size_t>(right_arg_type)]),
+    LOG(INFO, "sqf_functions::register_sqf_function binary {}( {} = {:x}({:x}) {} = {:x}({:x}) {} = {:x}({:x}) @ {:x}", name,
+        types::__internal::to_string(return_arg_type), reinterpret_cast<uintptr_t>(_registerFuncs._types[static_cast<size_t>(return_arg_type)]), op._operator->return_type.metadata,
+        types::__internal::to_string(left_arg_type), reinterpret_cast<uintptr_t>(_registerFuncs._types[static_cast<size_t>(left_arg_type)]), op._operator->get_arg1_type().metadata,
+        types::__internal::to_string(right_arg_type), reinterpret_cast<uintptr_t>(_registerFuncs._types[static_cast<size_t>(right_arg_type)]), op._operator->get_arg2_type().metadata,
         reinterpret_cast<uintptr_t>(inserted)
     );
 
@@ -244,7 +244,7 @@ intercept::types::registered_sqf_function intercept::sqf_functions::register_sqf
         }
 
         functions = static_cast<game_functions*>(table->push_back(game_functions(r_string(lowerName))));
-        functions->copyPH(test);
+        functions->copyPH(*test);
     } else { //Name already exists
         if (auto found = findUnary(std::string(name), right_arg_type); found) {//Function with same arg types already exists
             if (intercept::cert::current_security_class != cert::signing::security_class::core) return registered_sqf_function{ nullptr }; //Core certified plugins have exception for this rule
@@ -279,7 +279,7 @@ intercept::types::registered_sqf_function intercept::sqf_functions::register_sqf
 #ifndef __linux__
     op._description = description;
 #endif
-    op.copyPH(test);
+    op.copyPH(*test);
     op._operator = rv_allocator<unary_operator>::create_single();
     op._operator->_vtable = test->_operator->_vtable;
     op._operator->procedure_addr = reinterpret_cast<unary_function*>(function_);
@@ -291,9 +291,9 @@ intercept::types::registered_sqf_function intercept::sqf_functions::register_sqf
 
     //auto inserted = findUnary(name, right_arg_type); //Could use this to check if == ref returned by push_back.. But I'm just assuming it works right now
     //std::stringstream stream;
-    LOG(INFO, "sqf_functions::register_sqf_function unary {} {} = {:x} {} = {:x} @ {:x}", name,
-        types::__internal::to_string(return_arg_type), reinterpret_cast<uintptr_t>(_registerFuncs._types[static_cast<size_t>(return_arg_type)]),
-        types::__internal::to_string(right_arg_type), reinterpret_cast<uintptr_t>(_registerFuncs._types[static_cast<size_t>(right_arg_type)]),
+    LOG(INFO, "sqf_functions::register_sqf_function unary {} {} = {:x}({:x}) {} = {:x}({:x}) @ {:x}", name,
+        types::__internal::to_string(return_arg_type), reinterpret_cast<uintptr_t>(_registerFuncs._types[static_cast<size_t>(return_arg_type)]), op._operator->return_type.metadata,
+        types::__internal::to_string(right_arg_type), reinterpret_cast<uintptr_t>(_registerFuncs._types[static_cast<size_t>(right_arg_type)]), op._operator->get_arg_type().metadata,
         reinterpret_cast<uintptr_t>(inserted)
     );
 
@@ -346,7 +346,7 @@ intercept::types::registered_sqf_function intercept::sqf_functions::register_sqf
 #ifndef __linux__
     op._description = description;
 #endif
-    op.copyPH(test);
+    op.copyPH(*test);
     op._operator = rv_allocator<nular_operator>::create_single();
     op._operator->_vtable = test->_operator->_vtable;
     op._operator->procedure_addr = reinterpret_cast<nular_function*>(function_);
@@ -369,8 +369,8 @@ intercept::types::registered_sqf_function intercept::sqf_functions::register_sqf
 
     //auto inserted = findNular(name);  Could use this to confirm that inserted points to correct value
     //std::stringstream stream;
-    LOG(INFO, "sqf_functions::register_sqf_function nular {} {} = {:x} @ {:x}", name, types::__internal::to_string(return_arg_type)
-        , reinterpret_cast<uintptr_t>(_registerFuncs._types[static_cast<size_t>(return_arg_type)]), reinterpret_cast<uintptr_t>(inserted)
+    LOG(INFO, "sqf_functions::register_sqf_function nular {} {} = {:x}({:x}) @ {:x}", name, types::__internal::to_string(return_arg_type)
+        , reinterpret_cast<uintptr_t>(_registerFuncs._types[static_cast<size_t>(return_arg_type)]), op._operator->return_type.metadata, reinterpret_cast<uintptr_t>(inserted)
     );
     auto wrapper = std::make_shared<registered_sqf_func_wrapper>(return_arg_type, inserted);
 
@@ -454,17 +454,19 @@ std::pair<types::game_data_type, sqf_script_type*>  intercept::sqf_functions::re
     if (name.length() > 128) throw std::length_error("intercept::sqf_functions::register_sqf_type name can maximum be 128 chars long");
     auto gs = reinterpret_cast<game_state*>(_registerFuncs._gameState);
 
+    static const r_string category("intercept"sv);
+#ifdef INTERCEPT_NEW_SCRIPT_TYPE
+    // auto newType = new script_type_info(
+    auto newType = rv_allocator<script_type_info>::create_single(
+#else
     auto newType = rv_allocator<script_type_info>::allocate(2);
 
     // Temporary workaround for size change in 2.13 150487. Make sure we have extra nulled space after the type
 
     memset(newType, 0, sizeof(script_type_info) * 2);
     ::new (newType) script_type_info(
-    #ifdef __linux__
-        name,cf,localizedName,localizedName
-    #else
-        name,cf,localizedName,localizedName,description,r_string("intercept"sv),typeName
-    #endif
+#endif
+        name,cf,localizedName,localizedName,description,category,typeName
     );
     gs->_scriptTypes.emplace_back(newType);
     const auto newIndex = _registerFuncs._types.size();
