@@ -416,10 +416,12 @@ namespace intercept {
     #endif
 
 
+#ifndef __linux__
         if (!_allocator.poolFuncAlloc || !_allocator.poolFuncDealloc) {
             LOG(ERROR, "Loader failed on pool allocator");
             return false;
         }
+#endif
         //#TODO check others
 
         return true;
