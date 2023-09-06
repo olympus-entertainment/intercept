@@ -203,11 +203,11 @@ namespace intercept {
     static std::tuple<uint8_t, uint8_t, uint32_t> getGameVersion() {
 
 #ifdef __linux__
-// #ifdef INTERCEPT_213_SCRIPT_TYPES
-//         return {2, 14, 0};
-// #else
+#ifdef INTERCEPT_213_SCRIPT_TYPES
+        return {2, 14, 0};
+#else
         return {0, 0, 0};
-// #endif
+#endif
 #else
         //Shamelessly copied from Dedmen's Hack :3
         CHAR fileName[_MAX_PATH];
