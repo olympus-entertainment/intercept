@@ -961,7 +961,7 @@ namespace intercept {
             uint32_t d[3];
             bool dumm;
             bool dumm2;             //undefined variables allowed?
-            const bool scheduled;   //canSuspend 0x4D6
+            const bool scheduled = false;   //canSuspend 0x4D6
             bool local;
             bool doNil; //undefined variable will be set to nil (unscheduled). If this is false it will throw error
             //throw
