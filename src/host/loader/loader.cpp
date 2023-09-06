@@ -203,7 +203,11 @@ namespace intercept {
     static std::tuple<uint8_t, uint8_t, uint32_t> getGameVersion() {
 
 #ifdef __linux__
+// #ifdef INTERCEPT_213_SCRIPT_TYPES
+//         return {2, 14, 0};
+// #else
         return {0, 0, 0};
+// #endif
 #else
         //Shamelessly copied from Dedmen's Hack :3
         CHAR fileName[_MAX_PATH];
@@ -230,7 +234,7 @@ namespace intercept {
     }
 
 
-    void loader::do_function_walk(uintptr_t state_addr_) {
+    bool loader::do_function_walk(uintptr_t state_addr_) {
         game_state_ptr = reinterpret_cast<game_state*>(state_addr_);
         DEBUG_PTR(game_state_ptr);
 
@@ -328,7 +332,7 @@ namespace intercept {
         auto [vMajor, vMinor, vBuild] = getGameVersion();
 
 
-        if (vMinor >= 13) {
+        if ((vBuild >= 150720 && vBuild != 150779) || vMinor >= 13) {
             CT_Is214 = true;
             DoCommandScan214(*this, game_state_ptr);
         } else {
@@ -359,7 +363,10 @@ namespace intercept {
             auto p1 = reinterpret_cast<uintptr_t*>(reinterpret_cast<uintptr_t>(entry->_createFunction) + 0x3);
             uintptr_t poolAlloc = *reinterpret_cast<uintptr_t*>(p1);
         #endif
-            LOG(INFO, "{} {} {}", entry->_localizedName, entry->_javaFunc, entry->_readableName);
+            // mcoffin
+            // LOG(INFO, "{} {} {}", entry->_localizedName, entry->_javaFunc, entry->_readableName);
+            // upstream
+            LOG(INFO, "{} {}", entry->_localizedName, entry->_readableName);
             LOG(INFO, "Found Type operator: {} create@{:x} pool@{:x}", entry->_name, reinterpret_cast<uintptr_t>(entry->_createFunction), poolAlloc);
             //OutputDebugStringA(entry->_name.data());
             //OutputDebugStringA("\n");
@@ -409,9 +416,13 @@ namespace intercept {
     #endif
 
 
+        if (!_allocator.poolFuncAlloc || !_allocator.poolFuncDealloc) {
+            LOG(ERROR, "Loader failed on pool allocator");
+            return false;
+        }
+        //#TODO check others
 
-
-
+        return true;
     }
 
     const unary_map & loader::unary() const {

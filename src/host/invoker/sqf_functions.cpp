@@ -188,6 +188,7 @@ intercept::types::registered_sqf_function intercept::sqf_functions::register_sqf
     }
 
     __internal::gsOperator op;
+    memset(&op, 0, sizeof(op));  // I don't know why this fails, it has constructor and default zero initialization, but compiler just doesn't do it
     op.set_name(name);
     op.set_name2(r_string(lowerName));
 #ifndef __linux__
@@ -282,6 +283,7 @@ intercept::types::registered_sqf_function intercept::sqf_functions::register_sqf
     }
 
     __internal::gsFunction op;
+    memset(&op, 0, sizeof(op));  // I don't know why this fails, it has constructor and default zero initialization, but compiler just doesn't do it
     op.set_name(name);
     op.set_name2(r_string(lowerName));
 #ifndef __linux__
@@ -351,6 +353,7 @@ intercept::types::registered_sqf_function intercept::sqf_functions::register_sqf
     if (!_canRegister) throw std::logic_error("Can only register SQF Commands on preStart");
 
     __internal::gsNular op;
+    memset(&op, 0, sizeof(op)); // I don't know why this fails, it has constructor and default zero initialization, but compiler just doesn't do it
     op.set_name(name);
     op.set_name2(r_string(lowerName)); //#TODO move this into a constructor. for all types
 #ifndef __linux__
@@ -485,6 +488,34 @@ std::pair<types::game_data_type, sqf_script_type*>  intercept::sqf_functions::re
         name,cf,localizedName,localizedName,description,r_string("intercept"sv),typeName
     #endif
     );
+
+// removing this for now in favor of what I already built
+#ifndef INTERCEPT_213_SCRIPT_TYPES
+    if (CT_Is214) {
+        uint64_t maxB = 0;
+        for (const auto script_type : gs->_scriptTypes) {
+            const auto tPtr = reinterpret_cast<uint64_t *>(reinterpret_cast<uintptr_t>(&script_type->_typeName) + sizeof(script_type->_typeName));
+            if (*tPtr == 0) {
+                // ERROR! Some type is not initialized yet
+                throw std::runtime_error("Error during type registration, tell a dev!");
+            }
+            if (*tPtr == ~(1ull << 63))
+                continue; // Skip "Any" type
+
+            if (*tPtr > maxB)
+                maxB = *tPtr;
+        }
+        const auto tPtr = reinterpret_cast<uint64_t *>(reinterpret_cast<uintptr_t>(&newType->_typeName) + sizeof(newType->_typeName));
+
+        if (maxB > (1ull << 61)) {
+            // Too many types registered. Fail
+            throw std::runtime_error("Cannot register SQF Type, maximum number of types has been reached");
+        }
+
+        *tPtr = maxB << 1;
+    }
+#endif
+
     gs->_scriptTypes.emplace_back(newType);
     const auto newIndex = _registerFuncs.add_type(newType);
     LOG(INFO, "sqf_functions::register_sqf_type {} {} {} ", name, localizedName, description, typeName);
@@ -507,13 +538,18 @@ sqf_script_type* sqf_functions::register_compound_sqf_type(const auto_array<type
     if (!_canRegister) throw std::runtime_error("Can only register SQF Types on preStart");
     const auto gs = reinterpret_cast<game_state*>(_registerFuncs._gameState);
 
+    LOG(INFO, "sqf_functions::register_compound_sqf_type");
+
     auto_array<const script_type_info*> resolvedTypes;
 
     for (auto& it : types) {
         const auto argTypeString = types::__internal::to_string(it);
         for (auto& type : gs->get_script_types()) {
-            if (type->_name == argTypeString)
+            if (type->_name == argTypeString) {
                 resolvedTypes.emplace_back(type);
+                LOG(INFO, "compound part {}", type->_name.data());
+            }
+
         }
     }
 
@@ -527,7 +563,7 @@ sqf_script_type* sqf_functions::register_compound_sqf_type(const auto_array<type
 #ifdef INTERCEPT_213_SCRIPT_TYPES
     auto typeInstance = rv_allocator<sqf_script_type>::create_single(_registerFuncs._type_vtable, nullptr, newType);
 #else
-    auto typeInstance = //rv_allocator<sqf_script_type>::create_single(_registerFuncs._type_vtable, nullptr, newType);
+    auto typeInstance =  //rv_allocator<sqf_script_type>::create_single(_registerFuncs._type_vtable, nullptr, newType);
         // Temporary workaround for change in 2.13 150487
         rv_allocator<sqf_script_type>::allocate(2);
     memset(typeInstance, 0, sizeof(sqf_script_type) * 2);

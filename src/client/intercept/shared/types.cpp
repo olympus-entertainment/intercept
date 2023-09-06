@@ -370,10 +370,24 @@ namespace intercept {
             *reinterpret_cast<uintptr_t *>(static_cast<I_debug_value *>(this)) = data_type_def;
         }
 
+        game_data_hashmap::game_data_hashmap(rv_hashmap &&init_) {
+            *reinterpret_cast<uintptr_t *>(this) = type_def;
+            *reinterpret_cast<uintptr_t *>(static_cast<I_debug_value *>(this)) = data_type_def;
+            data = std::move(init_);
+        }
+
+
+
         game_data_hashmap::game_data_hashmap(const game_data_hashmap &copy_) {
             *reinterpret_cast<uintptr_t *>(this) = type_def;
             *reinterpret_cast<uintptr_t *>(static_cast<I_debug_value *>(this)) = data_type_def;
             data = copy_.data;
+        }
+
+        game_data_hashmap::game_data_hashmap(const rv_hashmap &copy_) {
+            *reinterpret_cast<uintptr_t *>(this) = type_def;
+            *reinterpret_cast<uintptr_t *>(static_cast<I_debug_value *>(this)) = data_type_def;
+            data = copy_;
         }
 
         game_data_hashmap::game_data_hashmap(game_data_hashmap &&move_) noexcept {
@@ -614,6 +628,16 @@ namespace intercept {
         game_value::game_value(auto_array<game_value> &&array_) {
             set_vtable(__vptr_def);
             data = new game_data_array(std::move(array_));
+        }
+
+        game_value::game_value(rv_hashmap &&hashmap_) {
+            set_vtable(__vptr_def);
+            data = new game_data_hashmap(std::move(hashmap_));
+        }
+
+        game_value::game_value(const rv_hashmap &hashmap_) {
+            set_vtable(__vptr_def);
+            data = new game_data_hashmap(hashmap_);
         }
 
         game_value::game_value(const vector3 & vec_) {
@@ -1040,7 +1064,24 @@ namespace intercept {
             return serialization_return::no_error;
         }
     #pragma endregion
-    }
+
+        void *vm_context::callstack_item_data::operator new(std::size_t sz_) {
+            return rv_allocator<callstack_item_data>::create_array(sz_);
+        }
+        void vm_context::callstack_item_data::operator delete(void *ptr_, std::size_t sz_) {
+            rv_allocator<callstack_item_data>::deallocate(static_cast<callstack_item_data*>(ptr_));
+        }
+        vm_context::callstack_item_data::callstack_item_data(game_data_code *code, callstack_item *parent, game_var_space varSpace, int stackPos, const game_state *gs) {
+            _code = code;
+            _parent = parent;
+            _varSpace = varSpace;
+            _stackEndAtStart = stackPos;
+
+            // add to scope
+            _stackEnd = stackPos + 1;
+            _programCounter = 0;
+        }
+    }  // namespace types
 }
 
 
